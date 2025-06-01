@@ -3,10 +3,6 @@ session_start();
 $error = '';
 $con = new mysqli('localhost','root','','websitedb');
 
-if ($con->connect_error) {
-    die("Connection failed: " . $con->connect_error);
-}
-
 // Check if the account was frozen and redirected from clientloans.php
 if (isset($_GET['frozen']) && $_GET['frozen'] == 'true') {
     $error = "Your account has been permanently frozen due to an overdue loan.";
@@ -72,6 +68,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Account is active (Status is 1), proceed with login
                         $_SESSION['loginid'] = $client['national_identifier_number'];
                         $_SESSION['type_of_user'] = 'client';
+                        // Clear chat history and remove chatbase script before redirecting
+                        echo "<script>
+                            // Remove existing chatbase script
+                            const existingScript = document.getElementById('x9uv2XfitCRhlpoY7ssgb');
+                            if (existingScript) {
+                                existingScript.remove();
+                            }
+                            // Clear chatbase if it exists
+                            if (window.chatbase) {
+                                window.chatbase('reset');
+                                // Remove chatbase from window object
+                                delete window.chatbase;
+                            }
+                            // Clear any stored chat history
+                            localStorage.removeItem('chatbase_history');
+                            sessionStorage.removeItem('chatbase_history');
+                        </script>";
                         header('Location: clientdashboard.php');
                         exit;
                     }

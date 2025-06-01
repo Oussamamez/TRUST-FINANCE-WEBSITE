@@ -26,7 +26,7 @@ $total_withdrawals_today = $con->query("SELECT SUM(amount) AS total_withdrawals 
 $pending_transactions_count = $con->query("SELECT COUNT(*) AS pending_count FROM mono_acc_transaction WHERE Validated = 0")->fetch_assoc()['pending_count'] ?? 0;
 
 // Assuming 'loans' table exists with 'status' column and 'Active' status
-$active_loans_count = $con->query("SELECT COUNT(*) AS active_count FROM loan WHERE loan_status = 'Active'")->fetch_assoc()['active_count'] ?? 0;
+$active_loans_count = $con->query("SELECT COUNT(*) AS active_count FROM loan WHERE loan_status = 'Approved'")->fetch_assoc()['active_count'] ?? 0;
 
 // Fetch transaction type distribution
 $transaction_types = $con->query("SELECT 

@@ -103,16 +103,25 @@ CREATE TABLE `super_user` (
   `type_of_user` varchar(50) DEFAULT NULL,
   `suPassword` varchar(255) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
-  `bank_name` varchar(100) DEFAULT NULL
+  `bank_name` varchar(100) DEFAULT NULL,
+  `Status` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `super_user`
 --
 
-INSERT INTO `super_user` (`superuser_id`, `family_name`, `first_name`, `phone_number`, `date_of_birth`, `type_of_user`, `suPassword`, `email`, `bank_name`) VALUES
-('1', 'ADMIN', 'admin', '1', '1999-12-31', 'Admin', 'admin', 'admin', 'SMART TRUST BANK'),
-('2', 'CASHIER', 'Cashier', '2', '2000-01-01', 'Cashier', 'cashier', 'cashier', 'SMART TRUST BANK');
+INSERT INTO `super_user` (`superuser_id`, `family_name`, `first_name`, `phone_number`, `date_of_birth`, `type_of_user`, `suPassword`, `email`, `bank_name`, `Status`) VALUES
+('1', 'ADMIN', 'admin', '1', '1999-12-31', 'Admin', 'admin', 'admin', 'SMART TRUST BANK', 1),
+('2', 'CASHIER', 'Cashier', '2', '2000-01-01', 'Cashier', 'cashier', 'cashier', 'SMART TRUST BANK', 1);
+
+-- Insert default admin user
+INSERT INTO `super_user` (`superuser_id`, `email`, `suPassword`, `type_of_user`, `Status`, `bank_name`) VALUES
+('ADMIN001', 'admin@trustfinance.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1, 'SMART TRUST BANK');
+
+-- Note: The hashed password above is for 'password123'
+-- You can change the email and password as needed
+-- The hash was generated using PHP's password_hash() function
 
 -- --------------------------------------------------------
 

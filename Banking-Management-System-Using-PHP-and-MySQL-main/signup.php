@@ -34,15 +34,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Passwords do not match!";
     }
     else {
-        // Check if email already exists
-        $email_check = $con->query("SELECT email FROM normaluser WHERE email = '$email'");
-        if ($email_check && $email_check->num_rows > 0) {
-            $error = "This email is already registered. Please use a different email address.";
+        // Check if National ID already exists
+        $nin_check = $con->query("SELECT national_identifier_number FROM normaluser WHERE national_identifier_number = '$national_id'");
+        if ($nin_check && $nin_check->num_rows > 0) {
+            $error = "This National ID is already registered. Please check your National ID.";
         } else {
-            // Check if National ID already exists
-            $nin_check = $con->query("SELECT national_identifier_number FROM normaluser WHERE national_identifier_number = '$national_id'");
-            if ($nin_check && $nin_check->num_rows > 0) {
-                $error = "This National ID is already registered. Please check your National ID.";
+            // Check if email already exists
+            $email_check = $con->query("SELECT email FROM normaluser WHERE email = '$email'");
+            if ($email_check && $email_check->num_rows > 0) {
+                $error = "This email is already registered. Please use a different email address.";
             } else {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
@@ -51,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 try {
                     // Insert into normaluser table
-                    $sql_user = "INSERT INTO normaluser (national_identifier_number, family_name, first_name, email, phone_number, date_of_birth, uPassword) 
-                                VALUES ('$national_id', '$family_name', '$first_name', '$email', '$phone_number', '$date_of_birth', '$hashedPassword')";
+                    $sql_user = "INSERT INTO normaluser (national_identifier_number, family_name, first_name, email, phone_number, date_of_birth, uPassword, superuser_id) 
+                                VALUES ('$national_id', '$family_name', '$first_name', '$email', '$phone_number', '$date_of_birth', '$hashedPassword', NULL)";
 
                     if (!$con->query($sql_user)) {
                         throw new Exception("Error creating user: " . $con->error);
@@ -61,9 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Generate unique RIP
                     $rip = 'RIP' . $national_id;
                     
-                    // Insert into useraccount table with status 2 (Pending)
-                    $sql_acc = "INSERT INTO useraccount (RIP, balance, national_identifier_number, Status) 
-                               VALUES ('$rip', 0.00, '$national_id', 2)";
+                    // Insert into useraccount table with status 2 (Pending) and NULL superuserid
+                    $sql_acc = "INSERT INTO useraccount (RIP, balance, national_identifier_number, Status, superuser_id) 
+                               VALUES ('$rip', 0.00, '$national_id', 2, NULL)";
                     
                     if (!$con->query($sql_acc)) {
                         throw new Exception("Error creating account: " . $con->error);

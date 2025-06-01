@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('log_errors', 1);
+ini_set('display_errors', 1); // هذا لازم نحيه لانو يمد معلومات حساة عن قاعدة البيانات الخ و يقوم بعرض الاخطاء على المتصفح مباشرة 
+ini_set('log_errors', 1); 
 ini_set('error_log', 'transfer_errors.log');
 
 // Function to log errors and redirect

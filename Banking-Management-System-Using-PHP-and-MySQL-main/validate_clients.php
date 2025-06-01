@@ -13,14 +13,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && isset($_POST['national_id'])) {
         $national_id = $con->real_escape_string($_POST['national_id']);
         $action = $_POST['action'];
+        $admin_id = $_SESSION['loginid']; // Get the current admin's ID
         
         if ($action === 'approve') {
-            // Update user account status to active (1)
-            $update = $con->query("UPDATE useraccount SET Status = 1 WHERE national_identifier_number = '$national_id'");
-            if ($update) {
+            // Start transaction
+            $con->begin_transaction();
+            
+            try {
+                // First update the normaluser table
+                $update_user = $con->query("UPDATE normaluser SET superuser_id = '$admin_id' WHERE national_identifier_number = '$national_id'");
+                if (!$update_user) {
+                    throw new Exception("Error updating user record: " . $con->error);
+                }
+
+                // Then update the useraccount table
+                $update_account = $con->query("UPDATE useraccount SET Status = 1, superuser_id = '$admin_id' WHERE national_identifier_number = '$national_id'");
+                if (!$update_account) {
+                    throw new Exception("Error updating account record: " . $con->error);
+                }
+
+                // If both updates are successful, commit the transaction
+                $con->commit();
                 $success = "Client account approved successfully!";
-            } else {
-                $error = "Error approving client account: " . $con->error;
+            } catch (Exception $e) {
+                // If any error occurs, rollback the transaction
+                $con->rollback();
+                $error = $e->getMessage();
             }
         } elseif ($action === 'reject') {
             // Update user account status to rejected (0)

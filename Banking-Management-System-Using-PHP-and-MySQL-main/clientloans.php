@@ -10,6 +10,9 @@ if ($con->connect_error) {
     die("Connection failed: " . $con->connect_error);
 }
 
+// Ensure created_at column exists
+$con->query("ALTER TABLE loan ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+
 $national_id = $_SESSION['loginid'];
 $error = '';
 $success = '';
@@ -52,43 +55,92 @@ if (!$rip) {
     
     // Handle new loan request
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_loan'])) {
-        $amount = $con->real_escape_string($_POST['amount']);
+        $amount = intval($_POST['amount']); // Convert to integer
         $loan_date = date('Y-m-d');
         
-        // Add check for maximum loan amount
-        if ($amount > 50000) {
-            $error = "Maximum loan amount allowed is $50,000.";
+        // Validate amount
+        if ($amount < 50 || $amount > 50000) {
+            $error = "Loan amount must be between $50 and $50,000.";
         } else {
-            // Calculate loan term based on amount
-            $term = 0; // Initialize term
-            if ($amount >= 50 && $amount <= 499) {
-                $term = 3;
-            } elseif ($amount >= 500 && $amount <= 1999) {
-                $term = 6;
-            } elseif ($amount >= 2000 && $amount <= 9999) {
-                $term = 12;
-            } elseif ($amount >= 10000) {
-                $term = 24;
-            }
-
-            // Generate unique loan ID
-            $loan_id = 'LOAN-' . date('Y') . sprintf('%04d', rand(1, 9999));
-            
-            // Calculate loan tax (5% of loan amount)
-            $loan_tax = $amount * 0.05;
-            
-            // Include loan_term in the INSERT statement
-            $insert_sql = "INSERT INTO loan (loan_id, amount, loan_status, loan_date, loan_tax, RIP, loan_term) 
-                          VALUES ('$loan_id', '$amount', 'Pending', '$loan_date', '$loan_tax', '$rip', '$term')"; 
-            
-            if ($con->query($insert_sql)) {
-                $success = "Loan request submitted successfully!";
-                // Refresh the active loan data
-                $active_loan = $con->query("SELECT * FROM loan WHERE RIP = '$rip' AND loan_status = 'Approved' ORDER BY loan_date DESC LIMIT 1")->fetch_assoc();
-                // Re-fetch all loans to update the table display
-                $all_loans = $con->query("SELECT * FROM loan WHERE RIP = '$rip' ORDER BY loan_date DESC");
+            // Check if user has any unpaid loans
+            $unpaid_loan = $con->query("SELECT * FROM loan WHERE RIP = '$rip' AND loan_status = 'Approved'")->fetch_assoc();
+            if ($unpaid_loan) {
+                $error = "You must pay off your current loan before applying for a new one.";
             } else {
-                $error = "Error submitting loan request: " . $con->error;
+                // Check if user already has a pending loan
+                $pending_loan = $con->query("SELECT * FROM loan WHERE RIP = '$rip' AND loan_status = 'Pending'")->fetch_assoc();
+                if ($pending_loan) {
+                    $error = "You already have a pending loan request. Please wait for it to be processed before applying for another loan.";
+                } else {
+                    // ============================================
+                    // OPTION 1: TWO MONTH CHECK
+                    // To enable: Remove the /* and */ below
+                    // To disable: Add /* and */ back
+                    // ============================================
+                    
+                    $two_months_ago = date('Y-m-d', strtotime('-2 months'));
+                    $recent_loan = $con->query("SELECT * FROM loan WHERE RIP = '$rip' AND loan_date >= '$two_months_ago'")->fetch_assoc();
+                    
+                    if ($recent_loan) {
+                        $error = "You can only apply for a new loan after 2 months from your last loan request.";
+                    } else {
+                        // ============================================
+                        // OPTION 2: 10-MINUTE DELAY CHECK
+                        // To enable: Remove the /* and */ below
+                        // To disable: Add /* and */ back
+                        // ============================================
+                        /*
+                        $ten_minutes_ago = date('Y-m-d H:i:s', strtotime('-10 minutes'));
+                        $recent_request = $con->query("SELECT * FROM loan WHERE RIP = '$rip' AND created_at >= '$ten_minutes_ago'")->fetch_assoc();
+                        
+                        if ($recent_request) {
+                            $error = "You can only apply for a new loan after 10 minutes from your last loan request.";
+                        } else {
+                        */
+
+                        // ============================================
+                        // CHECK IF LAST LOAN WAS PAID (ALWAYS ACTIVE)
+                        // ============================================
+                        $last_loan = $con->query("SELECT * FROM loan WHERE RIP = '$rip' ORDER BY loan_date DESC LIMIT 1")->fetch_assoc();
+                        if ($last_loan && $last_loan['loan_status'] !== 'Completed') {
+                            $error = "You must pay off your last loan before applying for a new one.";
+                        } else {
+                            // Calculate loan term based on amount
+                            $term = 0;
+                            if ($amount >= 50 && $amount <= 499) {
+                                $term = 3;
+                            } elseif ($amount >= 500 && $amount <= 1999) {
+                                $term = 6;
+                            } elseif ($amount >= 2000 && $amount <= 9999) {
+                                $term = 12;
+                            } elseif ($amount >= 10000) {
+                                $term = 24;
+                            }
+
+                            // Generate unique loan ID
+                            $loan_id = 'LOAN-' . date('Y') . sprintf('%04d', rand(1, 9999));
+                            
+                            // Calculate loan tax (5% of loan amount)
+                            $loan_tax = $amount * 0.05;
+                            
+                            // Get current timestamp
+                            $current_timestamp = date('Y-m-d H:i:s');
+                            
+                            // Insert the loan request
+                            $insert_sql = "INSERT INTO loan (loan_id, amount, loan_status, loan_date, loan_tax, RIP, loan_term, created_at) 
+                                        VALUES ('$loan_id', '$amount', 'Pending', '$loan_date', '$loan_tax', '$rip', '$term', '$current_timestamp')"; 
+                            
+                            if ($con->query($insert_sql)) {
+                                $success = "Loan request submitted successfully!";
+                                // Refresh the page to show updated data
+                                header('Location: clientloans.php?success=1');
+                                exit();
+                            } else {
+                                $error = "Error submitting loan request: " . $con->error;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -137,7 +189,8 @@ if (!$rip) {
 
                         // Update loan status if fully paid (remaining balance <= 0)
                         if ($remaining_balance <= 0) {
-                            $update_loan_status_sql = "UPDATE loan SET loan_status = 'Completed' WHERE loan_id = '$active_loan_id'";
+                            $current_timestamp = date('Y-m-d H:i:s');
+                            $update_loan_status_sql = "UPDATE loan SET loan_status = 'Completed', created_at = '$current_timestamp' WHERE loan_id = '$active_loan_id'";
                             $con->query($update_loan_status_sql);
                             $success .= " Loan is now fully paid!";
                             // Redirect to refresh the page and clear the active loan display
@@ -229,64 +282,80 @@ if (!$rip) {
 
         // Show modal
         function showModal(id) {
-            document.getElementById(id).classList.remove('hidden');
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.classList.remove('hidden');
+            }
         }
 
         // Close modal
         function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.add('hidden');
+            }
         }
 
-        // Event listeners for buttons
-        window.addEventListener('DOMContentLoaded', function() {
-            var requestLoanBtn = document.getElementById('requestLoanBtn');
-            var viewLoanBtn = document.getElementById('viewLoanBtn');
-            if (requestLoanBtn) {
-                requestLoanBtn.addEventListener('click', function() {
-                    showModal('requestLoanModal');
-                });
-            }
-            if (viewLoanBtn) {
-                viewLoanBtn.addEventListener('click', function() {
-                    showModal('viewLoanModal');
-                });
+        // Update term display
+        function updateTerm(amount) {
+            const termDisplay = document.querySelector('input[name="term_display"]');
+            amount = parseInt(amount);
+            
+            if (isNaN(amount)) {
+                termDisplay.value = 'Term will be determined by amount';
+                return;
             }
 
-            // Add event listener for loan amount input to update loan term display
-            var loanAmountInput = document.querySelector('#requestLoanModal input[name="amount"]');
-            var loanTermDisplay = document.querySelector('#requestLoanModal input[name="term_display"]');
-
-            if (loanAmountInput && loanTermDisplay) {
-                loanAmountInput.addEventListener('input', function() {
-                    var amount = parseFloat(this.value);
-                    var term = 'Term will be determined by amount';
-
-                    if (!isNaN(amount)) {
-                        if (amount >= 50 && amount <= 499) {
-                            term = '3 months';
-                        } else if (amount >= 500 && amount <= 1999) {
-                            term = '6 months';
-                        } else if (amount >= 2000 && amount <= 9999) {
-                            term = '12 months';
-                        } else if (amount >= 10000) {
-                            term = '24 months';
-                        } else {
-                             term = 'Amount outside valid range';
-                        }
-                    }
-                    
-                    // Add client-side validation for maximum amount
-                    if (amount > 50000) {
-                         term = 'Maximum loan amount is $50,000';
-                         // Optionally, you could disable the submit button here
-                         // document.querySelector('#requestLoanModal button[type="submit"]').disabled = true;
-                    } else {
-                         // document.querySelector('#requestLoanModal button[type="submit"]').disabled = false;
-                    }
-
-                    loanTermDisplay.value = term;
-                });
+            let term = '';
+            if (amount >= 50 && amount <= 499) {
+                term = '3 months';
+            } else if (amount >= 500 && amount <= 1999) {
+                term = '6 months';
+            } else if (amount >= 2000 && amount <= 9999) {
+                term = '12 months';
+            } else if (amount >= 10000 && amount <= 50000) {
+                term = '24 months';
+            } else if (amount > 50000) {
+                term = 'Maximum loan amount is $50,000';
+            } else {
+                term = 'Amount outside valid range';
             }
+            
+            termDisplay.value = term;
+        }
+
+        // Validate loan amount
+        function validateLoanAmount() {
+            const amountInput = document.querySelector('input[name="amount"]');
+            const amount = parseInt(amountInput.value);
+            
+            if (isNaN(amount) || amount < 50 || amount > 50000) {
+                alert('Please enter a valid loan amount between $50 and $50,000');
+                return false;
+            }
+            
+            if (amount % 1 !== 0) {
+                alert('Please enter a whole number amount');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event listeners to buttons
+            document.querySelector('button[onclick="showModal(\'requestLoanModal\')"]').addEventListener('click', function(e) {
+                e.preventDefault();
+                showModal('requestLoanModal');
+            });
+
+            document.querySelector('button[onclick="showModal(\'viewLoanModal\')"]').addEventListener('click', function(e) {
+                e.preventDefault();
+                showModal('viewLoanModal');
+            });
         });
     </script>
 </head>
@@ -482,11 +551,11 @@ if (!$rip) {
 
                 <!-- Action Buttons -->
                 <div class="flex w-full gap-8 my-8">
-                    <button id="requestLoanBtn" class="flex-1 bg-maze-green-900 hover:bg-maze-green-950 text-white font-semibold text-xl px-0 py-5 rounded-xl shadow transition duration-150 ease-in-out flex items-center justify-center gap-3 min-h-[56px]">
+                    <button type="button" onclick="showModal('requestLoanModal')" class="flex-1 bg-maze-green-900 hover:bg-maze-green-950 text-white font-semibold text-xl px-0 py-5 rounded-xl shadow transition duration-150 ease-in-out flex items-center justify-center gap-3 min-h-[56px]">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         Request New Loan
                     </button>
-                    <button id="viewLoanBtn" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xl px-0 py-5 rounded-xl shadow transition duration-150 ease-in-out flex items-center justify-center gap-3 min-h-[56px]">
+                    <button type="button" onclick="showModal('viewLoanModal')" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xl px-0 py-5 rounded-xl shadow transition duration-150 ease-in-out flex items-center justify-center gap-3 min-h-[56px]">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
                         View Loan Details
                     </button>
@@ -495,20 +564,26 @@ if (!$rip) {
                 <!-- Request New Loan Modal -->
                 <div id="requestLoanModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
                     <div class="bg-white p-6 rounded-lg w-full max-w-md relative">
-                        <button onclick="closeModal('requestLoanModal')" class="absolute top-2 right-4 text-gray-500 text-xl">&times;</button>
+                        <button type="button" onclick="closeModal('requestLoanModal')" class="absolute top-2 right-4 text-gray-500 text-xl">&times;</button>
                         <h2 class="text-xl font-semibold mb-4">Request New Loan</h2>
-                        <form method="POST">
-                            <label class="block mb-1">Loan Amount</label>
-                            <input type="number" name="amount" min="100" step="100" required
-                                   class="w-full border border-gray-300 p-2 rounded mb-3" placeholder="Enter amount">
+                        <form method="POST" onsubmit="return validateLoanAmount()">
+                            <div class="mb-4">
+                                <label class="block mb-1">Loan Amount ($)</label>
+                                <input type="number" name="amount" min="50" max="50000" step="1" required
+                                       class="w-full border border-gray-300 p-2 rounded mb-3" 
+                                       placeholder="Enter amount (min: $50, max: $50,000)"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, ''); updateTerm(this.value);">
+                            </div>
 
-                            <label class="block mb-1">Term (in months)</label>
-                            <!-- Display the calculated term or a placeholder if no amount entered -->
-                            <input type="text" name="term_display" value="<?php echo isset($term) && $term > 0 ? $term . ' months' : 'Term will be determined by amount'; ?>" readonly
-                                   class="w-full border border-gray-300 p-2 rounded mb-4 bg-gray-50" placeholder="Term will be determined by amount">
+                            <div class="mb-4">
+                                <label class="block mb-1">Term</label>
+                                <input type="text" name="term_display" readonly
+                                       class="w-full border border-gray-300 p-2 rounded mb-4 bg-gray-50" 
+                                       placeholder="Term will be determined by amount">
+                            </div>
 
                             <button type="submit" name="request_loan" 
-                                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">
+                                    class="w-full bg-maze-green-900 text-white px-4 py-2 rounded hover:bg-maze-green-950">
                                 Submit Request
                             </button>
                         </form>
@@ -523,9 +598,7 @@ if (!$rip) {
                         <?php if ($active_loan): ?>
                             <p><strong>Amount:</strong> $<?php echo number_format($active_loan['amount'], 2); ?></p>
                             <p><strong>Monthly Payment:</strong> $<?php echo ($active_loan && $active_loan['loan_term'] > 0 && isset($active_loan['original_amount'])) ? number_format($active_loan['original_amount'] / $active_loan['loan_term'], 2) : 'N/A'; ?></p>
-                            <!-- Display the calculated remaining term -->
                             <p><strong>Remaining Term:</strong> <?php echo ($active_loan && isset($active_loan['remaining_term'])) ? $active_loan['remaining_term'] . ' months' : 'N/A'; ?></p>
-                            <!-- Calculate end date based on the actual loan term -->
                             <p><strong>End Date:</strong> <?php echo ($active_loan && $active_loan['loan_term'] > 0) ? date('M d, Y', strtotime($active_loan['loan_date'] . ' + ' . $active_loan['loan_term'] . ' months')) : 'N/A'; ?></p>
                             <p><strong>Tax:</strong> $<?php echo number_format($active_loan['loan_tax'], 2); ?></p>
                         <?php else: ?>
@@ -542,21 +615,35 @@ if (!$rip) {
                             <?php while($payment = $payment_history->fetch_assoc()): ?>
                                 <div class="flex items-center bg-white border rounded-lg p-3">
                                     <div class="w-6 mr-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 text-red-500">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7l-7 7-7-7" />
-                                        </svg>
+                                        <?php if ($payment['type_of_transaction'] === 'Loan Payment'): ?>
+                                            <!-- Red minus icon for loan payments -->
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 text-red-500">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7l-7 7-7-7" />
+                                            </svg>
+                                        <?php else: ?>
+                                            <!-- Green plus icon for loan disbursement -->
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 text-green-500">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7l-7-7-7 7" />
+                                            </svg>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="flex-grow">
                                         <div class="text-sm text-gray-500"><?php echo htmlspecialchars($payment['date']); ?></div>
                                         <div class="flex items-center space-x-2">
-                                            <span>Loan Payment</span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                            </svg>
+                                            <span><?php echo htmlspecialchars($payment['type_of_transaction']); ?></span>
+                                            <?php if ($payment['type_of_transaction'] === 'Loan Payment'): ?>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            <?php else: ?>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
-                                    <div class="text-right font-bold text-red-500">
-                                        - $<?php echo number_format($payment['amount'], 2); ?>
+                                    <div class="text-right font-bold <?php echo $payment['type_of_transaction'] === 'Loan Payment' ? 'text-red-500' : 'text-green-500'; ?>">
+                                        <?php echo $payment['type_of_transaction'] === 'Loan Payment' ? '-' : '+'; ?> $<?php echo number_format($payment['amount'], 2); ?>
                                     </div>
                                 </div>
                             <?php endwhile; ?>

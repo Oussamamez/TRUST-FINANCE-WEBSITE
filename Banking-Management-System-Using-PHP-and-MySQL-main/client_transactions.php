@@ -12,7 +12,7 @@ if (!$rip) {
 }
 
 // Filtering
-$where = "RIP='$rip'";
+$where = "RIP='$rip' AND type_of_transaction IN ('Deposit', 'Withdraw')";
 $date_from = $_GET['date_from'] ?? '';
 $date_to = $_GET['date_to'] ?? '';
 $type = $_GET['type'] ?? 'all';
@@ -133,7 +133,7 @@ $transactions = $con->query("SELECT * FROM mono_acc_transaction WHERE $where ORD
                             <div class="flex items-center bg-white border rounded-lg p-3">
                                 <?php 
                                 $transactionType = strtolower($row['type_of_transaction']);
-                                $isWithdrawal = ($transactionType == 'withdraw' || $transactionType == 'loan repayment' || $transactionType == 'loan payment');
+                                $isWithdrawal = ($transactionType == 'withdraw');
                                 $validationStatus = ($row['Validated'] ?? 0) == 1 ? 'Confirmed' : 'Pending';
                                 $statusColor = ($row['Validated'] ?? 0) == 1 ? 'text-green-600' : 'text-yellow-600';
                                 ?>
@@ -174,6 +174,7 @@ $transactions = $con->query("SELECT * FROM mono_acc_transaction WHERE $where ORD
             </div>
         </div>
     </div>
+    <!-- الكود الخاص ب chatbot connection -->
     <script>
 (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="x9uv2XfitCRhlpoY7ssgb";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
 </script>

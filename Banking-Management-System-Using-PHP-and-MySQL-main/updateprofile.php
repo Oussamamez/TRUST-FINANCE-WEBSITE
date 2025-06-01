@@ -9,7 +9,6 @@ $con = new mysqli('localhost','root','','websitedb');
 if ($con->connect_error) {
     die("Connection failed: " . $con->connect_error);
 }
-
 $national_id = $_SESSION['loginid'];
 $success = '';
 $error = '';

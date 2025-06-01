@@ -118,7 +118,7 @@ $clients_query = $con->query("SELECT n.*, ua.Status FROM normaluser n JOIN usera
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Bank - Manage Clients</title>
+    <title>TRUST Finance - Manage Clients</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -186,9 +186,9 @@ $clients_query = $con->query("SELECT n.*, ua.Status FROM normaluser n JOIN usera
     </script>
 </head>
 <body class="bg-gray-100">
-    <div class="flex h-screen">
+    <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <div class="w-full md:w-64 bg-maze-green-950 text-white p-4 md:p-6">
+        <div class="w-64 bg-maze-green-950 text-white p-4 md:p-6 flex-shrink-0 overflow-y-auto sticky top-0 h-screen">
             <div class="flex items-center mb-8">
                 <a href="manager_home.php" class="flex items-center cursor-pointer">
                     <div class="w-10 h-10 flex items-center justify-center bg-white rounded-full mr-3 shadow">
@@ -272,7 +272,7 @@ $clients_query = $con->query("SELECT n.*, ua.Status FROM normaluser n JOIN usera
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="flex-1 p-8">
+        <div class="flex-1 p-8 overflow-y-auto">
             <div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold mb-6">Clients List</h2>
 

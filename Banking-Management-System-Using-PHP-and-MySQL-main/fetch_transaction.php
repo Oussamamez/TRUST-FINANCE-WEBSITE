@@ -1,7 +1,13 @@
 <?php
 // fetch_transaction.php
 header('Content-Type: application/json');
-require_once 'includes/db_conn.php'; // Include your database connection
+
+// Create database connection
+$con = new mysqli('localhost','root','','websitedb');
+if ($con->connect_error) {
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+    exit;
+}
 
 $data = json_decode(file_get_contents('php://input'), true);
 $transactionCode = $data['transactionCode'] ?? '';

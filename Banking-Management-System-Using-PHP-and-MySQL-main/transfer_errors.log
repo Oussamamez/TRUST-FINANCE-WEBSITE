@@ -1,0 +1,105 @@
+[02-Jun-2025 07:04:16 Europe/Berlin] POST data received: Array
+(
+    [rip] => RIP987654321106124524
+    [amount] => 33
+    [transfer_reason] => GIFT
+    [action] => transfer
+)
+
+[02-Jun-2025 07:04:16 Europe/Berlin] Processing POST request
+[02-Jun-2025 07:04:16 Europe/Berlin] Action: transfer
+[02-Jun-2025 07:04:16 Europe/Berlin] Processing transaction - Amount: 33, RIP: RIP982154321106124534, Action: transfer
+[02-Jun-2025 07:04:16 Europe/Berlin] Processing transfer action
+[02-Jun-2025 07:04:16 Europe/Berlin] Recipient RIP: RIP987654321106124524
+[02-Jun-2025 07:04:16 Europe/Berlin] Transfer Reason: GIFT
+[02-Jun-2025 07:04:16 Europe/Berlin] Checking recipient: SELECT RIP, balance FROM useraccount WHERE RIP = 'RIP987654321106124524'
+[02-Jun-2025 07:04:16 Europe/Berlin] Sender balance: 3.00, Transfer amount: 33
+[02-Jun-2025 07:04:16 Europe/Berlin] Insufficient funds. Your current balance is $3.00
+[02-Jun-2025 07:04:50 Europe/Berlin] POST data received: Array
+(
+    [rip] => RIP987654321106124524
+    [amount] => 2.5
+    [transfer_reason] => GIFT
+    [action] => transfer
+)
+
+[02-Jun-2025 07:04:50 Europe/Berlin] Processing POST request
+[02-Jun-2025 07:04:50 Europe/Berlin] Action: transfer
+[02-Jun-2025 07:04:50 Europe/Berlin] Processing transaction - Amount: 2.5, RIP: RIP982154321106124534, Action: transfer
+[02-Jun-2025 07:04:50 Europe/Berlin] Processing transfer action
+[02-Jun-2025 07:04:50 Europe/Berlin] Recipient RIP: RIP987654321106124524
+[02-Jun-2025 07:04:50 Europe/Berlin] Transfer Reason: GIFT
+[02-Jun-2025 07:04:50 Europe/Berlin] Checking recipient: SELECT RIP, balance FROM useraccount WHERE RIP = 'RIP987654321106124524'
+[02-Jun-2025 07:04:50 Europe/Berlin] Sender balance: 3.00, Transfer amount: 2.5
+[02-Jun-2025 07:04:50 Europe/Berlin] Starting transfer transaction
+[02-Jun-2025 07:04:50 Europe/Berlin] Sender balance updated
+[02-Jun-2025 07:04:50 Europe/Berlin] Recipient balance updated
+[02-Jun-2025 07:04:50 Europe/Berlin] Transfer logged successfully
+[02-Jun-2025 07:04:50 Europe/Berlin] Sender transaction logged successfully
+[02-Jun-2025 07:04:50 Europe/Berlin] Recipient transaction logged successfully
+[02-Jun-2025 07:04:50 Europe/Berlin] Transfer completed successfully - Transfer ID: TXN-1748840690-T-2418
+[02-Jun-2025 07:04:50 Europe/Berlin] Transaction Error: None
+[02-Jun-2025 07:32:53 Europe/Berlin] POST data received: Array
+(
+    [amount] => 2000
+    [action] => deposit
+)
+
+[02-Jun-2025 07:32:53 Europe/Berlin] Processing POST request
+[02-Jun-2025 07:32:53 Europe/Berlin] Action: deposit
+[02-Jun-2025 07:32:53 Europe/Berlin] Processing transaction - Amount: 2000, RIP: RIP987654321106124524, Action: deposit
+[02-Jun-2025 07:32:53 Europe/Berlin] Transaction Error: None
+[02-Jun-2025 07:59:05 Europe/Berlin] POST data received: Array
+(
+    [rip] => RIP748647839920031147
+    [amount] => 500
+    [transfer_reason] => debt
+    [action] => transfer
+)
+
+[02-Jun-2025 07:59:05 Europe/Berlin] Processing POST request
+[02-Jun-2025 07:59:05 Europe/Berlin] Action: transfer
+[02-Jun-2025 07:59:05 Europe/Berlin] Processing transaction - Amount: 500, RIP: RIP987654321106124524, Action: transfer
+[02-Jun-2025 07:59:05 Europe/Berlin] Processing transfer action
+[02-Jun-2025 07:59:05 Europe/Berlin] Recipient RIP: RIP748647839920031147
+[02-Jun-2025 07:59:05 Europe/Berlin] Transfer Reason: debt
+[02-Jun-2025 07:59:05 Europe/Berlin] Checking recipient: SELECT RIP, balance FROM useraccount WHERE RIP = 'RIP748647839920031147'
+[02-Jun-2025 07:59:05 Europe/Berlin] Sender balance: 2002.50, Transfer amount: 500
+[02-Jun-2025 07:59:05 Europe/Berlin] Starting transfer transaction
+[02-Jun-2025 07:59:05 Europe/Berlin] Sender balance updated
+[02-Jun-2025 07:59:05 Europe/Berlin] Recipient balance updated
+[02-Jun-2025 07:59:05 Europe/Berlin] Transfer logged successfully
+[02-Jun-2025 07:59:05 Europe/Berlin] Sender transaction logged successfully
+[02-Jun-2025 07:59:05 Europe/Berlin] Recipient transaction logged successfully
+[02-Jun-2025 07:59:05 Europe/Berlin] Transfer completed successfully - Transfer ID: TXN-1748843945-T-5200
+[02-Jun-2025 07:59:05 Europe/Berlin] Transaction Error: None
+[02-Jun-2025 08:00:02 Europe/Berlin] POST data received: Array
+(
+    [amount] => 200
+    [action] => withdraw
+)
+
+[02-Jun-2025 08:00:02 Europe/Berlin] Processing POST request
+[02-Jun-2025 08:00:02 Europe/Berlin] Action: withdraw
+[02-Jun-2025 08:00:02 Europe/Berlin] Processing transaction - Amount: 200, RIP: RIP748647839920031147, Action: withdraw
+[02-Jun-2025 08:00:02 Europe/Berlin] Transaction Error: None
+[02-Jun-2025 08:07:18 Europe/Berlin] POST data received: Array
+(
+    [amount] => 150
+    [action] => withdraw
+)
+
+[02-Jun-2025 08:07:18 Europe/Berlin] Processing POST request
+[02-Jun-2025 08:07:18 Europe/Berlin] Action: withdraw
+[02-Jun-2025 08:07:18 Europe/Berlin] Processing transaction - Amount: 150, RIP: RIP987654321106124524, Action: withdraw
+[02-Jun-2025 08:07:18 Europe/Berlin] Transaction Error: None
+[02-Jun-2025 08:15:06 Europe/Berlin] POST data received: Array
+(
+    [amount] => 150
+    [action] => withdraw
+)
+
+[02-Jun-2025 08:15:06 Europe/Berlin] Processing POST request
+[02-Jun-2025 08:15:06 Europe/Berlin] Action: withdraw
+[02-Jun-2025 08:15:06 Europe/Berlin] Processing transaction - Amount: 150, RIP: RIP748647839920031147, Action: withdraw
+[02-Jun-2025 08:15:06 Europe/Berlin] Transaction Error: None

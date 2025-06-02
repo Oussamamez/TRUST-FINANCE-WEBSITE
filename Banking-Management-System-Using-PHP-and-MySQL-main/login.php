@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['loginid'] = $user['superuser_id'];
                     $_SESSION['type_of_user'] = strtolower($user['type_of_user']);
                     if ($_SESSION['type_of_user'] === 'admin') {
-                        header('Location: admin_profile.php');
+                        header('Location: admin_dashboard.php');
                         exit;
                     } elseif ($_SESSION['type_of_user'] === 'cashier') {
                         header('Location: cashier_index.php');

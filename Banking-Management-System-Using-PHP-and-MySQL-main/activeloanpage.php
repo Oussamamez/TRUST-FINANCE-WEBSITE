@@ -173,7 +173,7 @@ $active_loans = $con->query("SELECT l.*, n.first_name, n.family_name, n.email, n
         <!-- Sidebar with Loan Management section -->
         <div class="w-64 bg-maze-green-950 text-white p-6 fixed h-screen overflow-y-auto">
             <div class="flex items-center mb-8">
-                <a href="manager_home.php" class="flex items-center cursor-pointer">
+                <a href="admin_dashboard.php" class="flex items-center cursor-pointer">
                     <div class="w-10 h-10 flex items-center justify-center bg-white rounded-full mr-3 shadow">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-maze-green-900">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
@@ -184,6 +184,13 @@ $active_loans = $con->query("SELECT l.*, n.first_name, n.family_name, n.email, n
             </div>
             
             <nav class="space-y-2">
+                 <!-- Dashboard Section -->
+                 <a href="admin_dashboard.php" class="flex items-center p-3 hover:bg-maze-green-900 rounded-md cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Dashboard
+                </a>
             <!-- Client Management -->
                 <a href="manager_home.php" class="flex items-center p-3 hover:bg-maze-green-900 rounded-md cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -364,7 +371,7 @@ $active_loans = $con->query("SELECT l.*, n.first_name, n.family_name, n.email, n
                                                     <p class="text-gray-600">Term:</p>
                                                     <p><?php echo htmlspecialchars($loan['loan_term'] ?? 'N/A'); ?> months</p>
                                                     <p class="text-gray-600">Monthly Payment:</p>
-                                                     <p>N/A</p> <?php /* Monthly payment calculation not available in DB */ ?>
+                                                     <p>$<?php echo ($loan['loan_term'] > 0) ? number_format($loan['amount'] / $loan['loan_term'], 2) : 'N/A'; ?></p>
                                                 </div>
                                             </div>
                                             

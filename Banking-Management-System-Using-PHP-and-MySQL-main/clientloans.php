@@ -78,25 +78,25 @@ if (!$rip) {
                     // To disable: Add /* and */ back
                     // ============================================
                     
-                    $two_months_ago = date('Y-m-d', strtotime('-2 months'));
+                 /*   $two_months_ago = date('Y-m-d', strtotime('-2 months'));
                     $recent_loan = $con->query("SELECT * FROM loan WHERE RIP = '$rip' AND loan_date >= '$two_months_ago'")->fetch_assoc();
                     
                     if ($recent_loan) {
                         $error = "You can only apply for a new loan after 2 months from your last loan request.";
-                    } else {
+                    } else {*/
                         // ============================================
                         // OPTION 2: 10-MINUTE DELAY CHECK
                         // To enable: Remove the /* and */ below
                         // To disable: Add /* and */ back
                         // ============================================
-                        /*
+                        
                         $ten_minutes_ago = date('Y-m-d H:i:s', strtotime('-10 minutes'));
                         $recent_request = $con->query("SELECT * FROM loan WHERE RIP = '$rip' AND created_at >= '$ten_minutes_ago'")->fetch_assoc();
                         
                         if ($recent_request) {
                             $error = "You can only apply for a new loan after 10 minutes from your last loan request.";
                         } else {
-                        */
+                        
 
                         // ============================================
                         // CHECK IF LAST LOAN WAS PAID (ALWAYS ACTIVE)

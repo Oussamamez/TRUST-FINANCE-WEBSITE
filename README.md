@@ -1,3 +1,6 @@
+ME AND MY 3 Colleagues did this project in 2  Year of university as a mandatory project course in 2 Semester 
+
+
 # TRUST-FINANCE-WEBSITE
 I have mainly used HTML TAILWINDCSS for ui design ; and PHP mysql using local server XAAMP , and some javascript for dynamic and some logic , and  i have implement charts using chart.js framework
 
